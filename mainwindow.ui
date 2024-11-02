@@ -70,7 +70,7 @@
   <customwidget>
    <class>FamilyTreeView</class>
    <extends>QGraphicsView</extends>
-   <header>playground.h</header>
+   <header>familytreeview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

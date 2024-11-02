@@ -22,36 +22,18 @@
  * SOFTWARE.
  ********************************************************************************/
 
+#include <QGraphicsView>
+
 #pragma once
 
-#include <QDialog>
-
-#include "familymember.h"
-
-namespace Ui {
-class FamilyMemberEditDialog;
-}
-
-class FamilyMemberEditDialog : public QDialog {
-  Q_OBJECT
-
+class FamilyTreeView : public QGraphicsView {
  public:
-  using DoneCallback = std::function<void(const FamilyMember& member)>;
+  explicit FamilyTreeView(QWidget* parent = nullptr);
 
-  explicit FamilyMemberEditDialog(QWidget* parent = nullptr);
-  ~FamilyMemberEditDialog();
-
-  void show(const QString& title, const FamilyMember& member, DoneCallback cb);
-
- private:
-  void onDone();
-
-  void setMemberToUi(const FamilyMember& member);
-  FamilyMember getMemberFromUi();
+ protected:
+  void wheelEvent(QWheelEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
 
  private:
-  Ui::FamilyMemberEditDialog* ui;
-
-  FamilyMember m_member;
-  DoneCallback m_doneCallback;
+  qreal m_scale = 1.0;
 };

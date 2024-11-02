@@ -24,34 +24,50 @@
 
 #pragma once
 
-#include <QDialog>
+#include <QObject>
 
 #include "familymember.h"
 
-namespace Ui {
-class FamilyMemberEditDialog;
-}
-
-class FamilyMemberEditDialog : public QDialog {
+class Family : public QObject {
   Q_OBJECT
 
  public:
-  using DoneCallback = std::function<void(const FamilyMember& member)>;
+  Family() {
+    clear();
+    setIsDirty(false);
+  }
 
-  explicit FamilyMemberEditDialog(QWidget* parent = nullptr);
-  ~FamilyMemberEditDialog();
+  bool isValid() const { return m_rootId != ""; }
+  void clear();
 
-  void show(const QString& title, const FamilyMember& member, DoneCallback cb);
+  QString toJson() const;
+  static Family* fromJson(const QString& json);
+
+  QString rootId() const;
+  void relayout();
+  int updateSubTreeWidth(const QString& id);
+
+  FamilyMember getMember(const QString& id);
+  QString getParentId(const QString& id);
+
+  void updateMember(const FamilyMember& member);
+  void addChild(const QString& parentId, const FamilyMember& child);
+
+  bool isDirty() const;
+  void setIsDirty(bool newIsDirty);
+
+ signals:
+  void cleared();
+  void relayouted();
+  void memberUpdated(const QString& id);
+  void childAdded(const QString& parentId, const QString& childId);
+  void childRemoved(const QString& parentId, const QString& childId);
+
+  void isDirtyChanged();
 
  private:
-  void onDone();
+  QString m_rootId;
+  std::map<QString, FamilyMember> m_idToMember;
 
-  void setMemberToUi(const FamilyMember& member);
-  FamilyMember getMemberFromUi();
-
- private:
-  Ui::FamilyMemberEditDialog* ui;
-
-  FamilyMember m_member;
-  DoneCallback m_doneCallback;
+  bool m_isDirty = false;
 };

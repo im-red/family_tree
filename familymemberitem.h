@@ -22,59 +22,56 @@
  * SOFTWARE.
  ********************************************************************************/
 
+#include <QGraphicsPathItem>
+
+#include "familymember.h"
+
 #pragma once
 
-#include <QGraphicsScene>
-#include <QMainWindow>
-#include <QMessageBox>
+constexpr int kItemWidth = 200;
+constexpr int kItemHeight = 280;
+constexpr int kTitleHeight = 80;
+constexpr int kNoteHeight = 20;
+constexpr int kItemVSpace = 40;
+constexpr int kItemHSpace = 40;
 
-#include "family.h"
-#include "familymembereditdialog.h"
-#include "familytreescene.h"
-
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class MainWindow;
-}
-QT_END_NAMESPACE
-
-class MainWindow : public QMainWindow {
-  Q_OBJECT
-
+class FamilyTreeScene;
+class ArrowItem;
+class FamilyMemberItem : public QGraphicsPathItem {
  public:
-  MainWindow(QWidget* parent = nullptr);
-  ~MainWindow();
+  explicit FamilyMemberItem(FamilyTreeScene* scene, const FamilyMember& member, QGraphicsItem* parent = nullptr);
 
-  QString currentFilePath() const;
-  void setCurrentFilePath(const QString& newCurrentFilePath);
+  QString id() const;
+  QString name() const { return m_name; }
 
- signals:
-  void currentFilePathChanged();
+  void update(const FamilyMember& member);
+  int subTreeBeginX() const;
+
+  int subTreeWidth() const;
+  void setSubTreeWidth(int newSubTreeWidth);
+
+  ArrowItem* inArrow() const;
+  void setInArrow(ArrowItem* newInArrow);
+
+  int width() const { return boundingRect().width(); }
+  int height() const { return boundingRect().height(); }
 
  protected:
-  void closeEvent(QCloseEvent* e) override;
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 
  private:
-  void onLoad(bool bypassPromptSave = false);
-  void onSave();
-
-  void onAddChild();
-  void onEdit();
-
-  void doLoad(const QString& path, Family* family);
-  void doSave(const QString& path, Family* family);
-
-  QMessageBox::StandardButton promptSave();
-  void updateWindowTitle();
-
- private:
-  Ui::MainWindow* ui;
-  FamilyMemberEditDialog* m_memberEditDialog = nullptr;
-  QMenu* m_itemMenu = nullptr;
-  QAction* m_addChildAction = nullptr;
-
   FamilyTreeScene* m_scene = nullptr;
-  std::unique_ptr<Family> m_family = nullptr;
 
-  QString m_currentFilePath;
+  QString m_id;
+  QString m_name;
+  int m_subTreeWidth = 0;
+
+  ArrowItem* m_inArrow = nullptr;
+
+  QGraphicsTextItem* m_titleItem = nullptr;
+  QGraphicsTextItem* m_nameItem = nullptr;
+  QGraphicsTextItem* m_spouseNameItem = nullptr;
+  QGraphicsTextItem* m_noteItem = nullptr;
 };

@@ -17,8 +17,8 @@ set(PROJECT_SOURCES
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
-        playground.h
-        playground.cpp
+
+
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -26,6 +26,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         familymembereditdialog.h familymembereditdialog.cpp familymembereditdialog.ui
+        family.h family.cpp
+        familymember.h familymember.cpp
+        familymemberitem.h familymemberitem.cpp
+        arrowitem.h arrowitem.cpp
+        familytreeview.h familytreeview.cpp
+        familytreescene.h familytreescene.cpp
 
     )
 # Define target properties for Android with Qt 6 as:

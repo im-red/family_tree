@@ -22,36 +22,37 @@
  * SOFTWARE.
  ********************************************************************************/
 
+#include <QGraphicsScene>
+
 #pragma once
 
-#include <QDialog>
-
-#include "familymember.h"
-
-namespace Ui {
-class FamilyMemberEditDialog;
-}
-
-class FamilyMemberEditDialog : public QDialog {
+class Family;
+class FamilyMemberItem;
+class QMenu;
+class FamilyTreeScene : public QGraphicsScene {
   Q_OBJECT
 
  public:
-  using DoneCallback = std::function<void(const FamilyMember& member)>;
+  FamilyTreeScene(QMenu* itemMenu, QObject* parent = nullptr);
 
-  explicit FamilyMemberEditDialog(QWidget* parent = nullptr);
-  ~FamilyMemberEditDialog();
+  void setFamily(Family* family);
 
-  void show(const QString& title, const FamilyMember& member, DoneCallback cb);
+  FamilyMemberItem* getItem(const QString& id);
+  QString selectedMemberId() const;
+
+  QMenu* itemMenu() const;
+
+ signals:
+  void itemDoubleClicked(FamilyMemberItem* item);
 
  private:
-  void onDone();
+  void onMemberUpdated(const QString& id);
+  void onRelayouted();
 
-  void setMemberToUi(const FamilyMember& member);
-  FamilyMember getMemberFromUi();
+  void addMemberItem(FamilyMemberItem* item);
 
  private:
-  Ui::FamilyMemberEditDialog* ui;
-
-  FamilyMember m_member;
-  DoneCallback m_doneCallback;
+  QMenu* m_itemMenu = nullptr;
+  Family* m_family = nullptr;
+  std::map<QString, FamilyMemberItem*> m_idToItem;
 };

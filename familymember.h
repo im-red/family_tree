@@ -24,34 +24,39 @@
 
 #pragma once
 
-#include <QDialog>
+#include <QJsonObject>
+#include <QString>
+#include <QUuid>
 
-#include "familymember.h"
+struct FamilyMember {
+  FamilyMember(bool doInit = false) {
+    if (doInit) {
+      id = QUuid::createUuid().toString();
+    }
+  }
+  bool isValid() const { return id != ""; }
 
-namespace Ui {
-class FamilyMemberEditDialog;
-}
+  QJsonObject toJson() const;
+  static FamilyMember fromJson(const QJsonObject& o);
 
-class FamilyMemberEditDialog : public QDialog {
-  Q_OBJECT
+  QString id;
+  QString title;
+  QString name;
+  QString spouseName;
+  bool isMale = true;
+  bool isAlive = false;
+  bool isSpouseAlive = false;
+  QString note;
+  std::vector<QString> children;
+  QString parentId;
+  int indexAsChild = 0;
 
- public:
-  using DoneCallback = std::function<void(const FamilyMember& member)>;
-
-  explicit FamilyMemberEditDialog(QWidget* parent = nullptr);
-  ~FamilyMemberEditDialog();
-
-  void show(const QString& title, const FamilyMember& member, DoneCallback cb);
-
- private:
-  void onDone();
-
-  void setMemberToUi(const FamilyMember& member);
-  FamilyMember getMemberFromUi();
-
- private:
-  Ui::FamilyMemberEditDialog* ui;
-
-  FamilyMember m_member;
-  DoneCallback m_doneCallback;
+  void clearLayoutValue() {
+    _layer = 0;
+    _indexInSubTree = 0;
+    _subTreeWidth = 1;
+  }
+  int _layer = 0;
+  int _indexInSubTree = 0;
+  int _subTreeWidth = 1;
 };

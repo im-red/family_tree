@@ -22,36 +22,49 @@
  * SOFTWARE.
  ********************************************************************************/
 
-#pragma once
-
-#include <QDialog>
-
 #include "familymember.h"
 
-namespace Ui {
-class FamilyMemberEditDialog;
+#include <QJsonArray>
+
+QJsonObject FamilyMember::toJson() const {
+  QJsonObject o;
+  o["id"] = id;
+  o["title"] = title;
+  o["name"] = name;
+  o["spouseName"] = spouseName;
+  o["note"] = note;
+  o["isMale"] = isMale;
+  o["isAlive"] = isAlive;
+  o["isSpouseAlive"] = isSpouseAlive;
+  o["children"] = [this]() -> QJsonArray {
+    QJsonArray a;
+    for (const QString& child : children) {
+      a.append(child);
+    }
+    return a;
+  }();
+  o["parentId"] = parentId;
+  o["indexAsChild"] = indexAsChild;
+  return o;
 }
 
-class FamilyMemberEditDialog : public QDialog {
-  Q_OBJECT
-
- public:
-  using DoneCallback = std::function<void(const FamilyMember& member)>;
-
-  explicit FamilyMemberEditDialog(QWidget* parent = nullptr);
-  ~FamilyMemberEditDialog();
-
-  void show(const QString& title, const FamilyMember& member, DoneCallback cb);
-
- private:
-  void onDone();
-
-  void setMemberToUi(const FamilyMember& member);
-  FamilyMember getMemberFromUi();
-
- private:
-  Ui::FamilyMemberEditDialog* ui;
-
-  FamilyMember m_member;
-  DoneCallback m_doneCallback;
-};
+FamilyMember FamilyMember::fromJson(const QJsonObject& o) {
+  FamilyMember result;
+  result.id = o["id"].toString();
+  result.title = o["title"].toString();
+  result.name = o["name"].toString();
+  result.spouseName = o["spouseName"].toString();
+  result.note = o["note"].toString();
+  result.isMale = o["isMale"].toBool();
+  result.isAlive = o["isAlive"].toBool();
+  result.isSpouseAlive = o["isSpouseAlive"].toBool();
+  if (o["children"].isArray()) {
+    QJsonArray a = o["children"].toArray();
+    for (const auto& v : a) {
+      result.children.push_back(v.toString());
+    }
+  }
+  result.parentId = o["parentId"].toString();
+  result.indexAsChild = o["indexAsChild"].toInt();
+  return result;
+}

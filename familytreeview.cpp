@@ -22,36 +22,33 @@
  * SOFTWARE.
  ********************************************************************************/
 
-#pragma once
+#include "familytreeview.h"
 
-#include <QDialog>
+#include <QWheelEvent>
 
-#include "familymember.h"
-
-namespace Ui {
-class FamilyMemberEditDialog;
+FamilyTreeView::FamilyTreeView(QWidget* parent) : QGraphicsView(parent) {
+  setMouseTracking(true);
+  setDragMode(QGraphicsView::ScrollHandDrag);
 }
 
-class FamilyMemberEditDialog : public QDialog {
-  Q_OBJECT
+void FamilyTreeView::wheelEvent(QWheelEvent* event) {
+  if (event->modifiers() & Qt::ControlModifier) {
+    if (event->angleDelta().y() > 0) {
+      m_scale *= 1.1;
+    } else {
+      m_scale *= 0.9;
+      m_scale = std::max(m_scale, 0.1);
+    }
 
- public:
-  using DoneCallback = std::function<void(const FamilyMember& member)>;
+    QTransform t;
+    t.scale(m_scale, m_scale);
+    setTransform(t);
+  } else {
+    QGraphicsView::wheelEvent(event);
+  }
+}
 
-  explicit FamilyMemberEditDialog(QWidget* parent = nullptr);
-  ~FamilyMemberEditDialog();
-
-  void show(const QString& title, const FamilyMember& member, DoneCallback cb);
-
- private:
-  void onDone();
-
-  void setMemberToUi(const FamilyMember& member);
-  FamilyMember getMemberFromUi();
-
- private:
-  Ui::FamilyMemberEditDialog* ui;
-
-  FamilyMember m_member;
-  DoneCallback m_doneCallback;
-};
+void FamilyTreeView::mouseMoveEvent(QMouseEvent* event) {
+  setFocus();
+  QGraphicsView::mouseMoveEvent(event);
+}
