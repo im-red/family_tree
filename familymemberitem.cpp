@@ -117,8 +117,8 @@ void FamilyMemberItem::update(const FamilyMember& member) {
   centerIn(m_noteItem, noteRect);
 }
 
-int FamilyMemberItem::subTreeBeginX() const {
-  int itemX = this->x();
+qreal FamilyMemberItem::subTreeBeginX() const {
+  qreal itemX = this->x();
   return itemX - (m_subTreeWidth - boundingRect().width()) / 2;
 }
 
@@ -139,10 +139,10 @@ void FamilyMemberItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
   QGraphicsPathItem::mousePressEvent(event);
 }
 
+qreal FamilyMemberItem::subTreeWidth() const { return m_subTreeWidth; }
+
+void FamilyMemberItem::setSubTreeWidth(qreal newSubTreeWidth) { m_subTreeWidth = newSubTreeWidth; }
+
 ArrowItem* FamilyMemberItem::inArrow() const { return m_inArrow; }
 
 void FamilyMemberItem::setInArrow(ArrowItem* newInArrow) { m_inArrow = newInArrow; }
-
-int FamilyMemberItem::subTreeWidth() const { return m_subTreeWidth; }
-
-void FamilyMemberItem::setSubTreeWidth(int newSubTreeWidth) { m_subTreeWidth = newSubTreeWidth; }

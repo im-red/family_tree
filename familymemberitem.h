@@ -34,6 +34,7 @@ constexpr int kTitleHeight = 80;
 constexpr int kNoteHeight = 20;
 constexpr int kItemVSpace = 40;
 constexpr int kItemHSpace = 40;
+constexpr int kArrowSize = 8;
 
 class FamilyTreeScene;
 class ArrowItem;
@@ -45,10 +46,10 @@ class FamilyMemberItem : public QGraphicsPathItem {
   QString name() const { return m_name; }
 
   void update(const FamilyMember& member);
-  int subTreeBeginX() const;
+  qreal subTreeBeginX() const;
 
-  int subTreeWidth() const;
-  void setSubTreeWidth(int newSubTreeWidth);
+  qreal subTreeWidth() const;
+  void setSubTreeWidth(qreal newSubTreeWidth);
 
   ArrowItem* inArrow() const;
   void setInArrow(ArrowItem* newInArrow);
@@ -66,7 +67,7 @@ class FamilyMemberItem : public QGraphicsPathItem {
 
   QString m_id;
   QString m_name;
-  int m_subTreeWidth = 0;
+  qreal m_subTreeWidth = 0;
 
   ArrowItem* m_inArrow = nullptr;
 

@@ -35,20 +35,26 @@ ArrowItem::ArrowItem(FamilyMemberItem* startItem, FamilyMemberItem* endItem, QGr
 }
 
 void ArrowItem::updatePosition() {
-  QPointF topLeft;
-  QPointF bottomRight;
+  QPointF begin;
+  QPointF end;
   if (m_startItem->x() <= m_endItem->x()) {
-    topLeft = mapFromItem(m_startItem, m_startItem->width() / 2, m_startItem->height());
-    bottomRight = mapFromItem(m_endItem, m_endItem->width() / 2, 0);
+    begin = mapFromItem(m_startItem, m_startItem->width() / 2, m_startItem->height());
+    end = mapFromItem(m_endItem, m_endItem->width() / 2, 0);
   } else {
-    QPointF topRight = mapFromItem(m_startItem, m_startItem->width() / 2, m_startItem->height());
-    QPointF bottomLeft = mapFromItem(m_endItem, m_endItem->width() / 2, 0);
-    topLeft = QPointF(bottomLeft.x(), topRight.y());
-    bottomRight = QPointF(topRight.x(), bottomLeft.y());
+    begin = mapFromItem(m_startItem, m_startItem->width() / 2, m_startItem->height());
+    end = mapFromItem(m_endItem, m_endItem->width() / 2, 0);
   }
-  qDebug() << ">>>>>>>>>>" << topLeft << bottomRight << bottomRight.y() - topLeft.y();
+
+  qDebug() << ">>>>>>>>>>" << begin << end;
   QPainterPath path;
-  path.addRect(QRectF(topLeft, bottomRight));
+  qreal height = end.y() - begin.y();
+  path.moveTo(begin);
+  path.lineTo(begin.x(), begin.y() + height / 2);
+  path.lineTo(end.x(), end.y() - height / 2);
+  path.lineTo(end);
+  path.lineTo(end.x() - kArrowSize, end.y() - kArrowSize);
+  path.moveTo(end);
+  path.lineTo(end.x() + kArrowSize, end.y() - kArrowSize);
   setPath(path);
 }
 

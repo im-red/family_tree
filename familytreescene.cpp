@@ -85,7 +85,7 @@ void FamilyTreeScene::onRelayouted() {
       FamilyMemberItem* item = new FamilyMemberItem(this, member);
       addMemberItem(item);
 
-      int totalWidth = member._subTreeWidth * (kItemWidth + kItemHSpace) - kItemHSpace;
+      qreal totalWidth = member._subTreeWidth * (kItemWidth + kItemHSpace) - kItemHSpace;
       item->setSubTreeWidth(totalWidth);
 
       if (member.parentId != curParentId) {
@@ -93,7 +93,7 @@ void FamilyTreeScene::onRelayouted() {
         layoutedChildrenWidth = 0;
       }
 
-      int subTreeBeginX = [this, &member]() {
+      qreal subTreeBeginX = [this, &member]() -> qreal {
         QString parentId = member.parentId;
         if (parentId == "") {
           return 0;
@@ -105,7 +105,7 @@ void FamilyTreeScene::onRelayouted() {
         return item->subTreeBeginX();
       }();
 
-      int beginX = subTreeBeginX + layoutedChildrenWidth;
+      qreal beginX = subTreeBeginX + layoutedChildrenWidth;
       item->setY(member._layer * (kItemHeight + kItemVSpace));
       item->setX(beginX + (totalWidth - item->boundingRect().width()) / 2);
       if (item->inArrow()) {
