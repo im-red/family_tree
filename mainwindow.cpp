@@ -48,6 +48,7 @@ MainWindow::MainWindow(QWidget* parent)
   connect(m_addChildAction, &QAction::triggered, this, &MainWindow::onAddChild);
   connect(ui->actionLoad, &QAction::triggered, this, &MainWindow::onLoad);
   connect(ui->actionSave, &QAction::triggered, this, &MainWindow::onSave);
+  connect(ui->actionExport, &QAction::triggered, this, &MainWindow::onExport);
   connect(m_scene, &FamilyTreeScene::itemDoubleClicked, this, &MainWindow::onEdit);
 
   connect(this, &MainWindow::currentFilePathChanged, this, &MainWindow::updateWindowTitle);
@@ -70,7 +71,7 @@ void MainWindow::onLoad(bool bypassPromptSave) {
     }
     return;
   }
-  QString path = QFileDialog::getOpenFileName(this, tr("Load File"), "", tr("*.json"));
+  QString path = QFileDialog::getOpenFileName(this, tr("Load"), "", tr("*.json"));
   qDebug() << path;
   if (path == "") {
     return;
@@ -96,12 +97,31 @@ void MainWindow::onSave() {
   Q_ASSERT(m_family && m_family->isValid());
   QString path = m_currentFilePath;
   if (path == "") {
-    path = QFileDialog::getSaveFileName(this, tr("Save File"), "", tr("*.json"));
+    path = QFileDialog::getSaveFileName(this, tr("Save"), "", tr("*.json"));
   }
   if (path == "") {
     return;
   }
   doSave(path, m_family.get());
+}
+
+void MainWindow::onExport() {
+  qDebug() << "";
+  Q_ASSERT(ui->graphicsView && m_family && m_family->isValid());
+  QString path = QFileDialog::getSaveFileName(this, tr("Export"), "", tr("*.png"));
+  qDebug() << "path:" << path;
+
+  constexpr int kPadding = 10;
+  constexpr int kMargin = 10;
+  QRectF sceneRect = m_scene->sceneRect();
+  QImage image(sceneRect.width() + (kPadding + kMargin) * 2, sceneRect.height() + (kPadding + kMargin) * 2,
+               QImage::Format_ARGB32);
+  image.fill(Qt::white);
+  QPainter painter(&image);
+  m_scene->render(&painter, QRectF(QPointF(kPadding + kMargin, kPadding + kMargin), sceneRect.size()));
+  painter.drawRect(kMargin, kMargin, sceneRect.width() + kPadding * 2, sceneRect.height() + kPadding * 2);
+  bool ret = image.save(path);
+  qDebug() << "save image return:" << ret;
 }
 
 void MainWindow::onAddChild() {
@@ -125,6 +145,8 @@ void MainWindow::doLoad(const QString& path, Family* family) {
   qDebug() << "path:" << path;
   Q_ASSERT(family);
   Q_ASSERT(family->isValid());
+
+  qDebug() << "family size:" << family->size();
 
   m_scene->setFamily(family);
   m_family.reset(family);
@@ -164,12 +186,9 @@ QMessageBox::StandardButton MainWindow::promptSave() {
 }
 
 void MainWindow::updateWindowTitle() {
-  QString title = QString("FamilyTree - %1").arg(m_currentFilePath);
   Q_ASSERT(m_family);
-  if (m_family->isDirty()) {
-    title += " *";
-  }
-  qDebug() << "title:" << title;
+  QString title = QString("%1%2 - FamilyTree")
+                      .arg(m_currentFilePath == "" ? "Untitled" : m_currentFilePath, m_family->isDirty() ? " *" : "");
   setWindowTitle(title);
 }
 

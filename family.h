@@ -38,6 +38,7 @@ class Family : public QObject {
   }
 
   bool isValid() const { return m_rootId != ""; }
+  int size() const { return m_idToMember.size(); }
   void clear();
 
   QString toJson() const;

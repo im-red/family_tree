@@ -28,9 +28,9 @@
 
 #pragma once
 
-constexpr int kItemWidth = 200;
-constexpr int kItemHeight = 280;
-constexpr int kTitleHeight = 80;
+constexpr int kItemWidth = 100;
+constexpr int kItemHeight = 175;
+constexpr int kTitleHeight = 50;
 constexpr int kNoteHeight = 20;
 constexpr int kItemVSpace = 40;
 constexpr int kItemHSpace = 40;

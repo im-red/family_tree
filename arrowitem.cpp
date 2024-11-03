@@ -45,7 +45,6 @@ void ArrowItem::updatePosition() {
     end = mapFromItem(m_endItem, m_endItem->width() / 2, 0);
   }
 
-  qDebug() << ">>>>>>>>>>" << begin << end;
   QPainterPath path;
   qreal height = end.y() - begin.y();
   path.moveTo(begin);
@@ -58,7 +57,4 @@ void ArrowItem::updatePosition() {
   setPath(path);
 }
 
-void ArrowItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
-  qDebug() << ">>>>>>>>>>" << m_startItem->name() << "->" << m_endItem->name() << pos() << boundingRect();
-  QGraphicsPathItem::mousePressEvent(event);
-}
+void ArrowItem::mousePressEvent(QGraphicsSceneMouseEvent* event) { QGraphicsPathItem::mousePressEvent(event); }

@@ -57,6 +57,7 @@ class MainWindow : public QMainWindow {
  private:
   void onLoad(bool bypassPromptSave = false);
   void onSave();
+  void onExport();
 
   void onAddChild();
   void onEdit();

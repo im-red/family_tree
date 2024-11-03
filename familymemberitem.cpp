@@ -42,9 +42,9 @@ static void centerIn(QGraphicsItem* item, const QRect& rect) {
 
 static QString verticalText(const QString& text) {
   QString result;
-  QList<uint32_t> ucs4 = text.toUcs4();
-  for (uint32_t u : ucs4) {
-    result += QString::fromUcs4(&u, 1);
+  std::u32string u32s = text.toStdU32String();
+  for (char32_t c : u32s) {
+    result += QString::fromUcs4(&c, 1);
     result += "\n";
   }
   return result.trimmed();
@@ -61,12 +61,6 @@ FamilyMemberItem::FamilyMemberItem(FamilyTreeScene* scene, const FamilyMember& m
   m_id = member.id;
   m_name = member.name;
   setFlag(QGraphicsItem::ItemIsSelectable, true);
-
-  QFont font = m_titleItem->font();
-  font.setPointSize(20);
-  m_titleItem->setFont(font);
-  m_nameItem->setFont(font);
-  m_spouseNameItem->setFont(font);
 
   update(member);
 }
@@ -111,6 +105,22 @@ void FamilyMemberItem::update(const FamilyMember& member) {
   m_spouseNameItem->setPlainText(verticalText(member.spouseName));
   m_noteItem->setPlainText(member.note);
 
+  QFont font = m_titleItem->font();
+  font.setFamily("楷体");
+  font.setPointSize(20);
+  QFont smallFont = font;
+  smallFont.setPointSize(16);
+  QFont noteFont = font;
+  noteFont.setPointSize(10);
+
+  int nameSize = member.name.toUcs4().size();
+  int spouseNameSize = member.spouseName.toUcs4().size();
+
+  m_titleItem->setFont(font);
+  m_nameItem->setFont((nameSize > 4 || (nameSize == 4 && member.note != "")) ? smallFont : font);
+  m_spouseNameItem->setFont((spouseNameSize > 4 || (spouseNameSize == 4 && member.note != "")) ? smallFont : font);
+  m_noteItem->setFont(noteFont);
+
   centerIn(m_titleItem, titleRect);
   centerIn(m_nameItem, nameRect);
   centerIn(m_spouseNameItem, spouseNameRect);
@@ -134,10 +144,7 @@ void FamilyMemberItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) {
   emit m_scene->itemDoubleClicked(this);
 }
 
-void FamilyMemberItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
-  qDebug() << ">>>>>>>>>>" << name() << pos() << boundingRect();
-  QGraphicsPathItem::mousePressEvent(event);
-}
+void FamilyMemberItem::mousePressEvent(QGraphicsSceneMouseEvent* event) { QGraphicsPathItem::mousePressEvent(event); }
 
 qreal FamilyMemberItem::subTreeWidth() const { return m_subTreeWidth; }
 

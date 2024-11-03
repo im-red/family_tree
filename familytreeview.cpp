@@ -29,6 +29,7 @@
 FamilyTreeView::FamilyTreeView(QWidget* parent) : QGraphicsView(parent) {
   setMouseTracking(true);
   setDragMode(QGraphicsView::ScrollHandDrag);
+  setStyleSheet("QGraphicsView { border: 1px solid gray }");
 }
 
 void FamilyTreeView::wheelEvent(QWheelEvent* event) {
