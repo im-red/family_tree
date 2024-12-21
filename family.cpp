@@ -28,6 +28,8 @@
 #include <QJsonDocument>
 #include <unordered_set>
 
+static const char* kDefaultFamilyTitle = "Untitled";
+
 QString Family::toJson() const {
   Q_ASSERT(isValid());
   if (!isValid()) {
@@ -36,6 +38,7 @@ QString Family::toJson() const {
 
   QJsonObject o;
   o["rootId"] = m_rootId;
+  o["title"] = m_title;
   o["members"] = [this]() -> QJsonArray {
     QJsonArray a;
     for (const auto& pair : m_idToMember) {
@@ -57,6 +60,10 @@ Family* Family::fromJson(const QString& json) {
   Family* result = new Family;
   QJsonObject o = d.object();
   result->m_rootId = o["rootId"].toString();
+  result->m_title = o["title"].toString();
+  if (result->m_title == "") {
+    result->m_title = kDefaultFamilyTitle;
+  }
   result->m_idToMember = [&o]() -> std::map<QString, FamilyMember> {
     std::map<QString, FamilyMember> result;
     QJsonValue v = o["members"];
@@ -83,6 +90,8 @@ Family* Family::fromJson(const QString& json) {
   result->setIsDirty(false);
   return result;
 }
+
+QString Family::title() const { return m_title; }
 
 void Family::addChild(const QString& parentId, const FamilyMember& child) {
   Q_ASSERT(child.isValid());
@@ -192,9 +201,20 @@ FamilyMember Family::getMember(const QString& id) {
 
 QString Family::getParentId(const QString& id) { return getMember(id).parentId; }
 
+void Family::updateTitle(const QString& title) {
+  if (title == "") {
+    m_title = kDefaultFamilyTitle;
+  } else {
+    m_title = title;
+  }
+  emit titleUpdated();
+  setIsDirty(true);
+}
+
 void Family::clear() {
   m_idToMember.clear();
   m_rootId = QUuid::createUuid().toString();
+  m_title = kDefaultFamilyTitle;
   FamilyMember member;
   member.id = m_rootId;
   m_idToMember[member.id] = member;

@@ -22,55 +22,22 @@
  * SOFTWARE.
  ********************************************************************************/
 
-#pragma once
+#include "familytitleitem.h"
 
-#include <QObject>
+#include <QKeyEvent>
 
-#include "familymember.h"
+FamilyTitleItem::FamilyTitleItem() {}
 
-class Family : public QObject {
-  Q_OBJECT
+void FamilyTitleItem::focusOutEvent(QFocusEvent* event) {
+  QGraphicsTextItem::focusOutEvent(event);
+  emit editDone();
+}
 
- public:
-  Family() {
-    clear();
-    setIsDirty(false);
+void FamilyTitleItem::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return) {
+    clearFocus();
+    event->accept();
+    return;
   }
-
-  bool isValid() const { return m_rootId != ""; }
-  int size() const { return m_idToMember.size(); }
-  void clear();
-
-  QString toJson() const;
-  static Family* fromJson(const QString& json);
-
-  QString title() const;
-  QString rootId() const;
-  void relayout();
-  int updateSubTreeWidth(const QString& id);
-
-  FamilyMember getMember(const QString& id);
-  QString getParentId(const QString& id);
-
-  void updateTitle(const QString& title);
-  void updateMember(const FamilyMember& member);
-  void reorderChildren(const QString& parentId, const std::vector<QString>& children);
-  void addChild(const QString& parentId, const FamilyMember& child);
-
-  bool isDirty() const;
-  void setIsDirty(bool newIsDirty);
-
- signals:
-  void titleUpdated();
-  void relayouted();
-  void memberUpdated(const QString& id);
-
-  void isDirtyChanged();
-
- private:
-  QString m_rootId;
-  QString m_title;
-  std::map<QString, FamilyMember> m_idToMember;
-
-  bool m_isDirty = false;
-};
+  QGraphicsTextItem::keyPressEvent(event);
+}

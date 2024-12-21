@@ -28,6 +28,7 @@
 
 class Family;
 class FamilyMemberItem;
+class FamilyTitleItem;
 class QMenu;
 class FamilyTreeScene : public QGraphicsScene {
   Q_OBJECT
@@ -52,9 +53,13 @@ class FamilyTreeScene : public QGraphicsScene {
  private:
   void onMemberUpdated(const QString& id);
   void onRelayouted();
+  void onTitleUpdated();
+
+  void onTitleEditDone();
 
   void addMemberItem(FamilyMemberItem* item);
 
+  FamilyMemberItem* rootMemberItem();
   FamilyMemberItem* parentMemberItem(FamilyMemberItem* item);
   std::vector<FamilyMemberItem*> childrenMemberItem(FamilyMemberItem* item);
   std::vector<FamilyMemberItem*> siblingsMemberItem(FamilyMemberItem* item);
@@ -67,6 +72,7 @@ class FamilyTreeScene : public QGraphicsScene {
   Family* m_family = nullptr;
   std::map<QString, FamilyMemberItem*> m_idToItem;
   QPointF m_movingBeginPos;
+  FamilyTitleItem* m_titleItem = nullptr;
   FamilyMemberItem* m_movingIndicator = nullptr;
   QGraphicsPathItem* m_movingTargetIndicator = nullptr;
   int m_movingTargetNewIndex = -1;

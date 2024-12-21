@@ -32,7 +32,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         arrowitem.h arrowitem.cpp
         familytreeview.h familytreeview.cpp
         familytreescene.h familytreescene.cpp
-
+        familytitleitem.h familytitleitem.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET family_tree APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

@@ -111,8 +111,8 @@ void MainWindow::onExport() {
   QString path = QFileDialog::getSaveFileName(this, tr("Export"), "", tr("*.png"));
   qDebug() << "path:" << path;
 
-  constexpr int kPadding = 10;
-  constexpr int kMargin = 10;
+  constexpr int kPadding = 30;
+  constexpr int kMargin = 20;
   QRectF sceneRect = m_scene->sceneRect();
   QImage image(sceneRect.width() + (kPadding + kMargin) * 2, sceneRect.height() + (kPadding + kMargin) * 2,
                QImage::Format_ARGB32);

@@ -24,53 +24,17 @@
 
 #pragma once
 
-#include <QObject>
+#include <QGraphicsTextItem>
 
-#include "familymember.h"
-
-class Family : public QObject {
+class FamilyTitleItem : public QGraphicsTextItem {
   Q_OBJECT
-
  public:
-  Family() {
-    clear();
-    setIsDirty(false);
-  }
-
-  bool isValid() const { return m_rootId != ""; }
-  int size() const { return m_idToMember.size(); }
-  void clear();
-
-  QString toJson() const;
-  static Family* fromJson(const QString& json);
-
-  QString title() const;
-  QString rootId() const;
-  void relayout();
-  int updateSubTreeWidth(const QString& id);
-
-  FamilyMember getMember(const QString& id);
-  QString getParentId(const QString& id);
-
-  void updateTitle(const QString& title);
-  void updateMember(const FamilyMember& member);
-  void reorderChildren(const QString& parentId, const std::vector<QString>& children);
-  void addChild(const QString& parentId, const FamilyMember& child);
-
-  bool isDirty() const;
-  void setIsDirty(bool newIsDirty);
+  FamilyTitleItem();
 
  signals:
-  void titleUpdated();
-  void relayouted();
-  void memberUpdated(const QString& id);
+  void editDone();
 
-  void isDirtyChanged();
-
- private:
-  QString m_rootId;
-  QString m_title;
-  std::map<QString, FamilyMember> m_idToMember;
-
-  bool m_isDirty = false;
+ protected:
+  void focusOutEvent(QFocusEvent* event) override;
+  void keyPressEvent(QKeyEvent* event) override;
 };

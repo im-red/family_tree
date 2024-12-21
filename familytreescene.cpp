@@ -29,6 +29,7 @@
 #include "arrowitem.h"
 #include "family.h"
 #include "familymemberitem.h"
+#include "familytitleitem.h"
 
 FamilyTreeScene::FamilyTreeScene(QMenu* itemMenu, QObject* parent) : QGraphicsScene(parent), m_itemMenu(itemMenu) {
   resetItems();
@@ -119,6 +120,21 @@ void FamilyTreeScene::onRelayouted() {
     }
     layerIds.swap(nextLayerIds);
   }
+
+  onTitleUpdated();
+}
+
+void FamilyTreeScene::onTitleUpdated() {
+  m_titleItem->setPlainText(m_family->title());
+  FamilyMemberItem* rootItem = rootMemberItem();
+  Q_ASSERT(rootItem);
+  m_titleItem->setY(rootItem->y() - m_titleItem->boundingRect().height() - 40);
+  m_titleItem->setX(rootItem->x() - (m_titleItem->boundingRect().width() - rootItem->width()) / 2);
+}
+
+void FamilyTreeScene::onTitleEditDone() {
+  Q_ASSERT(m_family);
+  m_family->updateTitle(m_titleItem->toPlainText());
 }
 
 void FamilyTreeScene::addMemberItem(FamilyMemberItem* item) {
@@ -134,6 +150,12 @@ void FamilyTreeScene::addMemberItem(FamilyMemberItem* item) {
   ArrowItem* arrow = new ArrowItem(parentItem, item);
   addItem(arrow);
   arrow->updatePosition();
+}
+
+FamilyMemberItem* FamilyTreeScene::rootMemberItem() {
+  Q_ASSERT(m_family);
+  QString rootId = m_family->rootId();
+  return m_idToItem[rootId];
 }
 
 FamilyMemberItem* FamilyTreeScene::parentMemberItem(FamilyMemberItem* item) {
@@ -202,6 +224,17 @@ void FamilyTreeScene::resetItems() {
   }());
   m_movingTargetIndicator->setVisible(false);
   addItem(m_movingTargetIndicator);
+
+  m_titleItem = new FamilyTitleItem;
+  m_titleItem->setFont([this]() {
+    QFont font = m_titleItem->font();
+    font.setFamily("楷体");
+    font.setPointSize(40);
+    return font;
+  }());
+  m_titleItem->setTextInteractionFlags(Qt::TextEditorInteraction);
+  connect(m_titleItem, &FamilyTitleItem::editDone, this, &FamilyTreeScene::onTitleEditDone);
+  addItem(m_titleItem);
 }
 
 QMenu* FamilyTreeScene::itemMenu() const { return m_itemMenu; }
@@ -292,6 +325,7 @@ void FamilyTreeScene::setFamily(Family* family) {
 
   if (m_family) {
     Q_ASSERT(m_family->isValid());
+    connect(m_family, &Family::titleUpdated, this, &FamilyTreeScene::onTitleUpdated);
     connect(m_family, &Family::relayouted, this, &FamilyTreeScene::onRelayouted, Qt::QueuedConnection);
     connect(m_family, &Family::memberUpdated, this, &FamilyTreeScene::onMemberUpdated);
     m_family->relayout();
