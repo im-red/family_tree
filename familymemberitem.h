@@ -23,6 +23,7 @@
  ********************************************************************************/
 
 #include <QGraphicsPathItem>
+#include <QPen>
 
 #include "familymember.h"
 
@@ -35,12 +36,15 @@ constexpr int kNoteHeight = 20;
 constexpr int kItemVSpace = 40;
 constexpr int kItemHSpace = 40;
 constexpr int kArrowSize = 8;
+static const QColor kActiveColor = QColor(0x0b, 0x5c, 0xff);
 
 class FamilyTreeScene;
 class ArrowItem;
 class FamilyMemberItem : public QGraphicsPathItem {
  public:
-  explicit FamilyMemberItem(FamilyTreeScene* scene, const FamilyMember& member, QGraphicsItem* parent = nullptr);
+  explicit FamilyMemberItem(FamilyTreeScene* scene, const FamilyMember& member, QGraphicsItem* parent = nullptr,
+                            const QPen& pen = QPen());
+  ~FamilyMemberItem();
 
   QString id() const;
   QString name() const { return m_name; }
@@ -61,6 +65,8 @@ class FamilyMemberItem : public QGraphicsPathItem {
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
  private:
   FamilyTreeScene* m_scene = nullptr;

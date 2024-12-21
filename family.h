@@ -52,6 +52,7 @@ class Family : public QObject {
   QString getParentId(const QString& id);
 
   void updateMember(const FamilyMember& member);
+  void reorderChildren(const QString& parentId, const std::vector<QString>& children);
   void addChild(const QString& parentId, const FamilyMember& child);
 
   bool isDirty() const;

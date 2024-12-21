@@ -42,6 +42,10 @@ class FamilyTreeScene : public QGraphicsScene {
 
   QMenu* itemMenu() const;
 
+  void onItemDragBegin(FamilyMemberItem* item, QGraphicsSceneMouseEvent* event);
+  void onItemDragMoving(FamilyMemberItem* item, QGraphicsSceneMouseEvent* event);
+  void onItemDragDone(FamilyMemberItem* item, QGraphicsSceneMouseEvent* event);
+
  signals:
   void itemDoubleClicked(FamilyMemberItem* item);
 
@@ -51,8 +55,19 @@ class FamilyTreeScene : public QGraphicsScene {
 
   void addMemberItem(FamilyMemberItem* item);
 
+  FamilyMemberItem* parentMemberItem(FamilyMemberItem* item);
+  std::vector<FamilyMemberItem*> childrenMemberItem(FamilyMemberItem* item);
+  std::vector<FamilyMemberItem*> siblingsMemberItem(FamilyMemberItem* item);
+  int indexInSiblings(FamilyMemberItem* item);
+
+  void resetItems();
+
  private:
   QMenu* m_itemMenu = nullptr;
   Family* m_family = nullptr;
   std::map<QString, FamilyMemberItem*> m_idToItem;
+  QPointF m_movingBeginPos;
+  FamilyMemberItem* m_movingIndicator = nullptr;
+  QGraphicsPathItem* m_movingTargetIndicator = nullptr;
+  int m_movingTargetNewIndex = -1;
 };

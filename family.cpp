@@ -26,6 +26,7 @@
 
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <unordered_set>
 
 QString Family::toJson() const {
   Q_ASSERT(isValid());
@@ -98,6 +99,26 @@ void Family::addChild(const QString& parentId, const FamilyMember& child) {
   setIsDirty(true);
 }
 
+void Family::reorderChildren(const QString& parentId, const std::vector<QString>& children) {
+  Q_ASSERT(m_idToMember.count(parentId));
+  Q_ASSERT(
+      std::unordered_set<QString>(m_idToMember[parentId].children.begin(), m_idToMember[parentId].children.end()) ==
+      std::unordered_set<QString>(children.begin(), children.end()));
+  if (m_idToMember[parentId].children == children) {
+    return;
+  }
+  m_idToMember[parentId].children = children;
+  relayout();
+  setIsDirty(true);
+}
+
+void Family::updateMember(const FamilyMember& member) {
+  Q_ASSERT(member.isValid());
+  m_idToMember[member.id] = member;
+  emit memberUpdated(member.id);
+  setIsDirty(true);
+}
+
 bool Family::isDirty() const { return m_isDirty; }
 
 void Family::setIsDirty(bool newIsDirty) {
@@ -158,7 +179,7 @@ int Family::updateSubTreeWidth(const QString& id) {
     result += updateSubTreeWidth(childId);
   }
   member._subTreeWidth = result;
-  qDebug() << member.name << "subTreeWidth:" << result;
+  // qDebug() << member.name << "subTreeWidth:" << result;
   return result;
 }
 
@@ -170,13 +191,6 @@ FamilyMember Family::getMember(const QString& id) {
 }
 
 QString Family::getParentId(const QString& id) { return getMember(id).parentId; }
-
-void Family::updateMember(const FamilyMember& member) {
-  Q_ASSERT(member.isValid());
-  m_idToMember[member.id] = member;
-  emit memberUpdated(member.id);
-  setIsDirty(true);
-}
 
 void Family::clear() {
   m_idToMember.clear();

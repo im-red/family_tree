@@ -24,11 +24,15 @@
 
 #include "familytreescene.h"
 
+#include <QGraphicsSceneMouseEvent>
+
 #include "arrowitem.h"
 #include "family.h"
 #include "familymemberitem.h"
 
-FamilyTreeScene::FamilyTreeScene(QMenu* itemMenu, QObject* parent) : QGraphicsScene(parent), m_itemMenu(itemMenu) {}
+FamilyTreeScene::FamilyTreeScene(QMenu* itemMenu, QObject* parent) : QGraphicsScene(parent), m_itemMenu(itemMenu) {
+  resetItems();
+}
 
 FamilyMemberItem* FamilyTreeScene::getItem(const QString& id) {
   if (m_idToItem.count(id) == 0) {
@@ -69,8 +73,7 @@ void FamilyTreeScene::onRelayouted() {
   Q_ASSERT(m_family);
   Q_ASSERT(m_family->isValid());
 
-  m_idToItem.clear();
-  clear();
+  resetItems();
 
   std::vector<QString> layerIds({m_family->rootId()});
   while (layerIds.size() > 0) {
@@ -122,31 +125,174 @@ void FamilyTreeScene::addMemberItem(FamilyMemberItem* item) {
   Q_ASSERT(item && item->id() != "");
   m_idToItem[item->id()] = item;
   addItem(item);
-  Q_ASSERT(m_family);
-  QString parentId = m_family->getParentId(item->id());
-  if (parentId == "") {
+
+  FamilyMemberItem* parentItem = parentMemberItem(item);
+  if (parentItem == nullptr) {
     return;
   }
-  FamilyMemberItem* parentItem = m_idToItem[parentId];
-  Q_ASSERT(parentItem);
+
   ArrowItem* arrow = new ArrowItem(parentItem, item);
   addItem(arrow);
   arrow->updatePosition();
 }
 
+FamilyMemberItem* FamilyTreeScene::parentMemberItem(FamilyMemberItem* item) {
+  Q_ASSERT(item);
+  QString id = item->id();
+  Q_ASSERT(m_family);
+  QString parentId = m_family->getParentId(id);
+  if (parentId == "") {
+    return nullptr;
+  }
+  return m_idToItem[parentId];
+}
+
+std::vector<FamilyMemberItem*> FamilyTreeScene::childrenMemberItem(FamilyMemberItem* item) {
+  Q_ASSERT(item);
+  QString id = item->id();
+  Q_ASSERT(m_family);
+  FamilyMember member = m_family->getMember(id);
+  Q_ASSERT(member.isValid());
+  std::vector<QString> children = member.children;
+  std::vector<FamilyMemberItem*> result;
+  for (const QString& child : children) {
+    Q_ASSERT(child != "");
+    FamilyMemberItem* childItem = m_idToItem[child];
+    Q_ASSERT(childItem);
+    result.push_back(childItem);
+  }
+  return result;
+}
+
+std::vector<FamilyMemberItem*> FamilyTreeScene::siblingsMemberItem(FamilyMemberItem* item) {
+  Q_ASSERT(item);
+  FamilyMemberItem* parentItem = parentMemberItem(item);
+  if (parentItem == nullptr) {
+    return {};
+  }
+  return childrenMemberItem(parentItem);
+}
+
+int FamilyTreeScene::indexInSiblings(FamilyMemberItem* item) {
+  Q_ASSERT(item);
+  std::vector<FamilyMemberItem*> siblings = siblingsMemberItem(item);
+  if (siblings.size() <= 1) {
+    return 0;
+  }
+  return std::find(siblings.begin(), siblings.end(), item) - siblings.begin();
+}
+
+void FamilyTreeScene::resetItems() {
+  m_idToItem.clear();
+  clear();
+
+  m_movingIndicator = new FamilyMemberItem(this, FamilyMember(true), nullptr, kActiveColor);
+  m_movingIndicator->setOpacity(0.3);
+  m_movingIndicator->setZValue(100);
+  m_movingIndicator->setVisible(false);
+  addItem(m_movingIndicator);
+
+  m_movingTargetIndicator = new QGraphicsPathItem;
+  m_movingTargetIndicator->setPen(kActiveColor);
+  m_movingTargetIndicator->setBrush(kActiveColor);
+  m_movingTargetIndicator->setPath([]() {
+    QPainterPath path;
+    path.addRect(0, 0, 5, kItemHeight);
+    return path;
+  }());
+  m_movingTargetIndicator->setVisible(false);
+  addItem(m_movingTargetIndicator);
+}
+
 QMenu* FamilyTreeScene::itemMenu() const { return m_itemMenu; }
+
+void FamilyTreeScene::onItemDragBegin(FamilyMemberItem* item, QGraphicsSceneMouseEvent* event) {
+  m_movingTargetNewIndex = -1;
+  m_movingBeginPos = event->pos();
+}
+
+void FamilyTreeScene::onItemDragMoving(FamilyMemberItem* item, QGraphicsSceneMouseEvent* event) {
+  m_movingTargetNewIndex = -1;
+  Q_ASSERT(item);
+  Q_ASSERT(event);
+  FamilyMember member = m_family->getMember(item->id());
+  Q_ASSERT(member.isValid());
+  m_movingIndicator->update(member);
+  m_movingIndicator->setPos(event->scenePos() - m_movingBeginPos);
+  m_movingIndicator->setVisible(true);
+
+  std::vector<FamilyMemberItem*> siblings = siblingsMemberItem(item);
+  if (siblings.size() <= 1) {
+    return;
+  }
+
+  int x = event->scenePos().x();
+  for (const FamilyMemberItem* sibling : siblings) {
+    if (x >= sibling->x() && x < (sibling->x() + sibling->width())) {
+      m_movingTargetIndicator->setVisible(false);
+      return;
+    }
+  }
+
+  m_movingTargetIndicator->setY(siblings.front()->y());
+
+  int oldIndex = indexInSiblings(item);
+  if (x <= siblings.front()->x()) {
+    m_movingTargetNewIndex = 0;
+    m_movingTargetIndicator->setX(siblings.front()->x() - 15);
+  } else if (x > siblings.back()->x() + siblings.back()->width()) {
+    m_movingTargetNewIndex = siblings.size() - 1;
+    m_movingTargetIndicator->setX(siblings.back()->x() + siblings.back()->width() + 10);
+  } else {
+    for (int i = 0; i < siblings.size() - 1; i++) {
+      if (x >= (siblings[i]->x() + siblings[i]->width()) && x < siblings[i + 1]->x()) {
+        m_movingTargetNewIndex = i + 1;
+        if (m_movingTargetNewIndex > oldIndex) {
+          m_movingTargetNewIndex--;
+        }
+        m_movingTargetIndicator->setX((siblings[i]->x() + siblings[i]->width() + siblings[i + 1]->x()) / 2 - 2.5);
+      }
+    }
+  }
+  if (m_movingTargetNewIndex == oldIndex) {
+    m_movingTargetNewIndex = -1;
+  }
+  m_movingTargetIndicator->setVisible(true);
+}
+
+void FamilyTreeScene::onItemDragDone(FamilyMemberItem* item, QGraphicsSceneMouseEvent* event) {
+  qDebug() << m_movingTargetNewIndex;
+  m_movingIndicator->setVisible(false);
+  m_movingTargetIndicator->setVisible(false);
+  if (m_movingTargetNewIndex == -1) {
+    return;
+  }
+  Q_ASSERT(item);
+  QString id = item->id();
+  Q_ASSERT(m_family);
+  QString parentId = m_family->getParentId(id);
+  Q_ASSERT(parentId != "");
+  FamilyMember parent = m_family->getMember(parentId);
+  Q_ASSERT(parent.isValid());
+  std::vector<QString> children = parent.children;
+  Q_ASSERT(children.size() > 1);
+  auto iter = std::find(children.begin(), children.end(), id);
+  Q_ASSERT(iter != children.end());
+  children.erase(iter);
+  children.insert(children.begin() + m_movingTargetNewIndex, id);
+  m_family->reorderChildren(parentId, children);
+}
 
 void FamilyTreeScene::setFamily(Family* family) {
   if (m_family) {
     disconnect(m_family, nullptr, this, nullptr);
   }
   m_family = family;
-  m_idToItem.clear();
-  clear();
+  resetItems();
 
   if (m_family) {
     Q_ASSERT(m_family->isValid());
-    connect(m_family, &Family::relayouted, this, &FamilyTreeScene::onRelayouted);
+    connect(m_family, &Family::relayouted, this, &FamilyTreeScene::onRelayouted, Qt::QueuedConnection);
     connect(m_family, &Family::memberUpdated, this, &FamilyTreeScene::onMemberUpdated);
     m_family->relayout();
   }

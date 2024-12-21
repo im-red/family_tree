@@ -50,7 +50,8 @@ static QString verticalText(const QString& text) {
   return result.trimmed();
 }
 
-FamilyMemberItem::FamilyMemberItem(FamilyTreeScene* scene, const FamilyMember& member, QGraphicsItem* parent)
+FamilyMemberItem::FamilyMemberItem(FamilyTreeScene* scene, const FamilyMember& member, QGraphicsItem* parent,
+                                   const QPen& pen)
     : QGraphicsPathItem(parent),
       m_scene(scene),
       m_titleItem(new QGraphicsTextItem(this)),
@@ -62,8 +63,16 @@ FamilyMemberItem::FamilyMemberItem(FamilyTreeScene* scene, const FamilyMember& m
   m_name = member.name;
   setFlag(QGraphicsItem::ItemIsSelectable, true);
 
+  setPen(pen);
+  m_titleItem->setDefaultTextColor(pen.color());
+  m_nameItem->setDefaultTextColor(pen.color());
+  m_spouseNameItem->setDefaultTextColor(pen.color());
+  m_noteItem->setDefaultTextColor(pen.color());
+
   update(member);
 }
+
+FamilyMemberItem::~FamilyMemberItem() {}
 
 QString FamilyMemberItem::id() const { return m_id; }
 
@@ -144,7 +153,20 @@ void FamilyMemberItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) {
   emit m_scene->itemDoubleClicked(this);
 }
 
-void FamilyMemberItem::mousePressEvent(QGraphicsSceneMouseEvent* event) { QGraphicsPathItem::mousePressEvent(event); }
+void FamilyMemberItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+  m_scene->onItemDragBegin(this, event);
+  QGraphicsPathItem::mousePressEvent(event);
+}
+
+void FamilyMemberItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
+  m_scene->onItemDragMoving(this, event);
+  QGraphicsPathItem::mouseMoveEvent(event);
+}
+
+void FamilyMemberItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
+  m_scene->onItemDragDone(this, event);
+  QGraphicsPathItem::mouseReleaseEvent(event);
+}
 
 qreal FamilyMemberItem::subTreeWidth() const { return m_subTreeWidth; }
 
