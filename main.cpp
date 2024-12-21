@@ -30,6 +30,7 @@ int main(int argc, char* argv[]) {
   qSetMessagePattern("%{time yyyy-MM-dd h:mm:ss.zzz} [%{type}] (%{file}:%{line}) %{function} - %{message}");
 
   QApplication a(argc, argv);
+  a.setWindowIcon(QIcon(":/resources/family_tree.svg"));
   MainWindow w;
   w.show();
   return a.exec();
