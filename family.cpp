@@ -198,6 +198,5 @@ void Family::clear() {
   FamilyMember member;
   member.id = m_rootId;
   m_idToMember[member.id] = member;
-  emit cleared();
   setIsDirty(true);
 }

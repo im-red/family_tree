@@ -59,11 +59,8 @@ class Family : public QObject {
   void setIsDirty(bool newIsDirty);
 
  signals:
-  void cleared();
   void relayouted();
   void memberUpdated(const QString& id);
-  void childAdded(const QString& parentId, const QString& childId);
-  void childRemoved(const QString& parentId, const QString& childId);
 
   void isDirtyChanged();
 
