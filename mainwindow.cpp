@@ -110,6 +110,9 @@ void MainWindow::onExport() {
   Q_ASSERT(ui->graphicsView && m_family && m_family->isValid());
   QString path = QFileDialog::getSaveFileName(this, tr("Export"), "", tr("*.png"));
   qDebug() << "path:" << path;
+  if (path == "") {
+    return;
+  }
 
   constexpr int kPadding = 30;
   constexpr int kMargin = 20;
