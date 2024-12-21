@@ -12,29 +12,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
-set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
-
-
-)
+set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
+file(GLOB_RECURSE PROJECT_SOURCES "${SOURCE_DIR}/*.cpp" "${SOURCE_DIR}/*.h" "${SOURCE_DIR}/*.ui")
+list(APPEND PROJECT_SOURCES ${CMAKE_SOURCE_DIR}/resources.qrc)
+if(WIN32)
+    list(APPEND PROJECT_SOURCES ${CMAKE_SOURCE_DIR}/resources/family_tree.rc)
+endif()
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(family_tree
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        familymembereditdialog.h familymembereditdialog.cpp familymembereditdialog.ui
-        family.h family.cpp
-        familymember.h familymember.cpp
-        familymemberitem.h familymemberitem.cpp
-        arrowitem.h arrowitem.cpp
-        familytreeview.h familytreeview.cpp
-        familytreescene.h familytreescene.cpp
-        familytitleitem.h familytitleitem.cpp
-        resources.qrc
-        resources/family_tree.rc
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET family_tree APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
